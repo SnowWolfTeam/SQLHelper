@@ -1,5 +1,5 @@
 {
-  "name":             "mastertang/SQLHelper",
+  "name":             "mastertang/sqlhelper",
   "description": "pdo封装类",
   "keywords":         ["mysql", "sql", "sqlHelper" ,"pdo","PHP" ,"php" ,"prize"],
   "time":             "2017-2-27",
