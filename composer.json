@@ -1,0 +1,21 @@
+{
+  "name":             "mastertang/SQLHelper",
+  "description": "pdo封装类",
+  "keywords":         ["mysql", "sql", "sqlHelper" ,"pdo","PHP" ,"php" ,"prize"],
+  "time":             "2017-2-27",
+  "license" : "MIT",
+  "autoload":{
+    "psr-4":{
+      "ChainSQL\\":"./"
+    }
+  },
+  "authors": [{
+    "name":         "RuiHua Tang",
+    "email":        "547740900@qq.com",
+    "homepage":     "https://github.com/",
+    "role":         "Programmer"
+  }],
+  "require":{
+        "php": ">=5.3.0"
+   }
+}
