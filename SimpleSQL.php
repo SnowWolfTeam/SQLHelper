@@ -6,6 +6,7 @@ use PDO;
 use SQLHelper\SQLAbstract\SQLBase;
 use SQLHelper\SQLInterface\SQLInterfaceSimple;
 use SQLHelper\Exception\SQLHelperException;
+
 class SimpleSQL extends SQLBase implements SQLInterfaceSimple
 {
     public function __construct($pdoParams)
@@ -13,7 +14,8 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
         parent::__construct($pdoParams);
     }
 
-    public function changePdoparams($pdoParams){
+    public function changePdoparams($pdoParams)
+    {
         $this->pdoConParams = $pdoParams;
         $this->pdoInstance = NULL;
     }
@@ -96,5 +98,35 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
             $result = is_object($executeResult) ? $executeResult->rowCount() : false;
         }
         return $result;
+    }
+
+    public function transactionStart()
+    {
+        if ($this->pdoInstance instanceof \PDO) {
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
+            $this->pdoInstance->beginTransaction();
+            return true;
+        } else
+            trigger_error('PDO未连接', E_USER_WARNING);
+    }
+
+    public function commit()
+    {
+        if ($this->pdoInstance instanceof \PDO) {
+            $this->pdoInstance->commit();
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+            return true;
+        } else
+            trigger_error('PDO未连接', E_USER_WARNING);
+    }
+
+    public function rollback()
+    {
+        if ($this->pdoInstance instanceof \PDO) {
+            $this->pdoInstance->rollBack();
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+            return true;
+        } else
+            trigger_error('PDO未连接', E_USER_WARNING);
     }
 }

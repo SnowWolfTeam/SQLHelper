@@ -132,5 +132,10 @@
 ```
     1.$pdoParams = pdo参数
 ```
+* 7 . transactionStart() //开启事务
+
+* 8 . commit()  //提交
+
+* 9 . rollback() //回滚
 
     

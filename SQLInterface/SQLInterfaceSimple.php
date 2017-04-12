@@ -17,4 +17,13 @@ interface SQLInterfaceSimple
 
     //删除
     function delete($sqlString, $pdoParams = []);
+
+    //开启事务
+    public function transactionStart();
+
+    //提交事务
+    public function commit();
+
+    //回滚
+    public function rollback();
 }

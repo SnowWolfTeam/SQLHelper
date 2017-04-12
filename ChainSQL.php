@@ -17,16 +17,14 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
         parent::__construct($conParam);
     }
 
-    public function changePdoparams($pdoParams){
+    public function changePdoParams($pdoParams)
+    {
         $this->pdoConParams = $pdoParams;
         $this->pdoInstance = NULL;
     }
 
     /**
      * 表
-     * @param $params
-     * @return $this
-     * @throws SQLHdelperException
      */
     public function tables($params)
     {
@@ -41,10 +39,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * AND条件
-     * @param $key
-     * @param string $operator
-     * @param string $values
-     * @return $this
      */
     public function where($key, $operator = '', $values = '')
     {
@@ -66,10 +60,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * Or条件
-     * @param $key
-     * @param string $operator
-     * @param string $values
-     * @return $this
      */
     public function orwhere($key, $operator = '', $values = '')
     {
@@ -127,9 +117,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 域
-     * @param $params
-     * @return $this
-     * @throws SQLHelperException
      */
     public function fields($params)
     {
@@ -142,9 +129,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 排序
-     * @param $params
-     * @return $this
-     * @throws SQLHelperException
      */
     public function order($params)
     {
@@ -157,9 +141,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 分组
-     * @param $params
-     * @return $this
-     * @throws SQLHelperException
      */
     public function group($params)
     {
@@ -172,9 +153,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 条数
-     * @param $params
-     * @return $this
-     * @throws SQLHelperException
      */
     public function limit($params)
     {
@@ -187,7 +165,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 查询数据
-     * @return null
      */
     public function select()
     {
@@ -214,8 +191,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 统计
-     * @return array|bool|int
-     * @throws SQLHelperException
      */
     public function count()
     {
@@ -252,8 +227,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 插入数据
-     * @param $params
-     * @return bool
      */
     public function insert($params)
     {
@@ -274,9 +247,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 更新数据
-     * @param $params
-     * @return bool|int
-     * @throws SQLHelperException
      */
     public function update($params)
     {
@@ -315,7 +285,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
      */
     public function delete()
     {
-        // TODO: Implement delete() method.
         $sqlPrepareString = 'delete from :tables '
             . (empty($this->sqlPrepareParams[':wheres']) ? '' : ' where ')
             . ' :wheres '
@@ -336,10 +305,6 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     /**
      * 原生查询
-     * @param $sqlString
-     * @param $type
-     * @return array|bool|int
-     * @throws SQLHelperException
      */
     public function query($sqlString, $type)
     {
@@ -399,4 +364,30 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
         return ' ' . implode(' ', $str);
     }
 
+    public function transactionStart()
+    {
+        if ($this->pdoInstance instanceof \PDO) {
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
+            $this->pdoInstance->beginTransaction();
+        } else
+            trigger_error('PDO未连接', E_USER_WARNING);
+    }
+
+    public function commit()
+    {
+        if ($this->pdoInstance instanceof \PDO) {
+            $this->pdoInstance->commit();
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+        } else
+            trigger_error('PDO未连接', E_USER_WARNING);
+    }
+
+    public function rollback()
+    {
+        if ($this->pdoInstance instanceof \PDO) {
+            $this->pdoInstance->rollBack();
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+        } else
+            trigger_error('PDO未连接', E_USER_WARNING);
+    }
 }
