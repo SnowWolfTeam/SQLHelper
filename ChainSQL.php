@@ -46,7 +46,7 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
             $this->sqlPrepareParams[':wheres'] .= empty($this->sqlPrepareParams[':wheres']) ? '(' : ' and (';
             $key($this);
             $this->sqlPrepareParams[':wheres'] .= ')';
-        } else {
+        } else if ((is_string($key) || is_array($key)) && ($key != "")) {
             if (!empty($this->sqlPrepareParams[':wheres'])) {
                 $whereStr = rtrim($this->sqlPrepareParams[':wheres']);
                 $lastChar = $whereStr{strlen($whereStr) - 1};
@@ -61,13 +61,13 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
     /**
      * Or条件
      */
-    public function orwhere($key, $operator = '', $values = '')
+    public function orwhere($key, $operator = NULL, $values = NULL)
     {
         if ($key instanceof \Closure) {
             $this->sqlPrepareParams[':wheres'] .= empty($this->sqlPrepareParams[':wheres']) ? '(' : ' or (';
             $key($this);
             $this->sqlPrepareParams[':wheres'] .= ')';
-        } else {
+        } else if ((is_string($key) || is_array($key)) && ($key != "")) {
             if (!empty($this->sqlPrepareParams[':wheres'])) {
                 $whereStr = rtrim($this->sqlPrepareParams[':wheres']);
                 $lastChar = $whereStr{strlen($whereStr) - 1};
@@ -81,38 +81,42 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
 
     private function whereSubFunc($key, $operator, $values, $str)
     {
-        if (!empty($key)) {
-            if (!empty($operator)) {
-                if (!empty($values)) {
-                    if (is_string($key) && is_string($operator) && is_string($values)) {
-                        $this->sqlPrepareParams[':wheres'] .= $key . $operator . '?';
-                        $this->whereValues[] = $values;
-                    } else if (is_array($key) && is_array($operator) && is_array($values)) {
-                        foreach ($values as $value) {
-                            $this->whereValues[] = $value;
-                        }
-                        $size = sizeof($key);
-                        for ($i = 0; $i < $size; $i++)
-                            $key[$i] = $key[$i] . $operator[$i] . '?';
-                        $this->sqlPrepareParams[':wheres'] .= implode($str, $key);
+        if (!empty($operator)) {
+            if (!empty($values)) {
+                if (is_string($key) && is_string($operator) && is_string($values)) {
+                    $this->sqlPrepareParams[':wheres'] .= $key . $operator . '?';
+                    $this->whereValues[] = $values;
+                } else if (is_array($key) && is_array($values)) {
+                    foreach ($values as $value) {
+                        $this->whereValues[] = $value;
                     }
-                } else {
-                    if (is_string($key) && is_string($operator)) {
-                        $this->sqlPrepareParams[':wheres'] .= $key . '=' . '?';
-                        $this->whereValues[] = $operator;
-                    } else if (is_array($key) && is_array($operator)) {
-                        foreach ($operator as $value) {
-                            $this->whereValues[] = $value;
-                        }
-                        $size = sizeof($key);
-                        for ($i = 0; $i < $size; $i++)
-                            $key[$i] = $key[$i] . '=?';
-                        $this->sqlPrepareParams[':wheres'] .= implode($str, $key);
+                    $size = sizeof($key);
+                    $operatorSize = sizeof($operator);
+                    if (is_string($operator))
+                        $operator = array_fill(0, $size, $operator);
+                    elseif (is_array($operator)) {
+                        $operator = array_merge($operator, array_fill($operatorSize - 1, $size - $operatorSize, '='));
                     }
+                    for ($i = 0; $i < $size; $i++)
+                        $key[$i] = $key[$i] . $operator[$i] . '?';
+                    $this->sqlPrepareParams[':wheres'] .= implode($str, $key);
                 }
-            } else
-                $this->sqlPrepareParams[':wheres'] .= is_array($key) ? implode($str, $key) : $key;
-        }
+            } else {
+                if (is_string($key) && is_string($operator)) {
+                    $this->sqlPrepareParams[':wheres'] .= $key . '=' . '?';
+                    $this->whereValues[] = $operator;
+                } else if (is_array($key) && is_array($operator)) {
+                    foreach ($operator as $value) {
+                        $this->whereValues[] = $value;
+                    }
+                    $size = sizeof($key);
+                    for ($i = 0; $i < $size; $i++)
+                        $key[$i] = $key[$i] . '=?';
+                    $this->sqlPrepareParams[':wheres'] .= implode($str, $key);
+                }
+            }
+        } else
+            $this->sqlPrepareParams[':wheres'] .= is_array($key) ? implode($str, $key) : $key;
     }
 
     /**
@@ -182,6 +186,7 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
             ],
             $sqlPrepareString
         );
+        echo $sqlPrepareString;
         $result = $this->sqlExecute($sqlPrepareString, $this->whereValues);
         if ($result === false)
             return false;
@@ -201,12 +206,13 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
         $sqlPrepareString = str_replace(
             [':fields', ':tables', ':wheres'],
             [
-                $this->sqlPrepareParams[':fields'][0],
+                explode(',', $this->sqlPrepareParams[':fields'])[0],
                 $this->sqlPrepareParams[':tables'],
                 $this->sqlPrepareParams[':wheres']
             ],
             $sqlPrepareString
         );
+        echo $sqlPrepareString;
         $execResult = $this->sqlExecute($sqlPrepareString, $this->whereValues);
         $result = false;
         if ($execResult === false) {
@@ -313,6 +319,7 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
             switch ($type) {
                 case "select":
                     $pdoSearchResult = $this->pdoInstance->query($sqlString);
+                    var_dump($pdoSearchResult);
                     $pdoSearchResult === false or $result = $pdoSearchResult->fetchAll(PDO::FETCH_ASSOC);
                     break;
                 case "count":
@@ -322,17 +329,15 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
                         if (sizeof($rows) > 1)
                             foreach ($rows as $value)
                                 $result[] = (int)$value[0];
-                        else
+                        else{
                             $result = (int)$rows[0][0];
+                        }
                     }
                     break;
                 case "insert":
-                    $result = $this->pdoInstance->exec($sqlString);
-                    break;
                 case "update":
-                    $result = $this->pdoInstance->exec($sqlString);
-                    break;
                 case "delete":
+                case "query":
                     $result = $this->pdoInstance->exec($sqlString);
                     break;
                 default:
@@ -369,8 +374,12 @@ class ChainSQL extends SQLBase implements SQLInterfaceChain
         if ($this->pdoInstance instanceof \PDO) {
             $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
             $this->pdoInstance->beginTransaction();
-        } else
-            trigger_error('PDO未连接', E_USER_WARNING);
+        } else {
+            $result = $this->pdoInstanceFunc();
+            if (!$result) trigger_error('PDO未连接', E_USER_WARNING);
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
+            $this->pdoInstance->beginTransaction();
+        }
     }
 
     public function commit()

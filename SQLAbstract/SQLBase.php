@@ -18,7 +18,7 @@ abstract class SQLBase
         try {
             if (empty($this->pdoInstance))
                 $this->pdoInstance = new \PDO($this->pdoConParams['dsn'], $this->pdoConParams['user'], $this->pdoConParams['pw']);
-            return empty($this) ? false : true;
+            return empty($this->pdoInstance) ? false : true;
         } catch (\PDOException $ex) {
             return false;
         }

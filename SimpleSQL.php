@@ -22,7 +22,6 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
 
     public function select($sqlString, $params = [])
     {
-        // TODO: Implement select() method.
         $result = false;
         if (empty($params)) {
             $pdoSearchResult = $this->pdoInstanceFunc();
@@ -37,7 +36,6 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
 
     public function update($sqlString, $params = [])
     {
-        // TODO: Implement update() method.
         $result = false;
         if (empty($params)) {
             $pdoSearchResult = $this->pdoInstanceFunc();
@@ -51,7 +49,6 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
 
     public function insert($sqlString, $params = [])
     {
-        // TODO: Implement insert() method.
         $result = false;
         if (empty($params)) {
             $pdoSearchResult = $this->pdoInstanceFunc();
@@ -65,7 +62,6 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
 
     public function count($sqlString, $params = [])
     {
-        // TODO: Implement count() method.
         $result = false;
         if (empty($params)) {
             $pdoSearchResult = $this->pdoInstanceFunc();
@@ -106,8 +102,12 @@ class SimpleSQL extends SQLBase implements SQLInterfaceSimple
             $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
             $this->pdoInstance->beginTransaction();
             return true;
-        } else
-            trigger_error('PDO未连接', E_USER_WARNING);
+        } else {
+            $result = $this->pdoInstanceFunc();
+            if (!$result) trigger_error('PDO未连接', E_USER_WARNING);
+            $this->pdoInstance->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
+            $this->pdoInstance->beginTransaction();
+        }
     }
 
     public function commit()
